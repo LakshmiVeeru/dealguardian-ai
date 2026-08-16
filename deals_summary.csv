@@ -1,0 +1,3 @@
+deal_id,counterparty,item,ceiling_price,target_price,current_offer,status,rounds,savings_vs_ceiling,updated_at
+a5dd738c,"{'address': 'lakshmivaidadi88@gmail.com', 'name': 'Lakshmi Vaidadi'}",XR-200 industrial sensor,5000,3800,,rejected,0,,2026-08-16T13:20:45.439611+00:00
+d2bed472,"{'address': 'lakshmivaidadi88@gmail.com', 'name': 'Lakshmi Vaidadi'}",XR-200 industrial sensor,5000,3800,,accepted,0,,2026-08-16T13:23:39.862009+00:00

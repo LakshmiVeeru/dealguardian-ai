@@ -1,0 +1,5 @@
+caspian-sdk
+python-dotenv
+langchain
+openai
+streamlit
