@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 *.db
 .vscode/
+deals.json
+*_id.txt
