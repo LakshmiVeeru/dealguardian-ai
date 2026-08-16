@@ -4,6 +4,8 @@ so you can tune the agent's behavior without touching the logic.
 """
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
 # ---------------------------------------------------------------------------
 # NEGOTIATION POLICY (you are the BUYER — you set a ceiling, not a floor)
 # ---------------------------------------------------------------------------
@@ -21,8 +23,8 @@ NEAR_CEILING_FRACTION      = 0.9   # if counterparty's ask is >= 90% of ceiling,
 # ---------------------------------------------------------------------------
 # HUGGING FACE (the "brain")
 # ---------------------------------------------------------------------------
-HF_API_KEY    = os.environ["HF_Read_Token"]
-HF_MODEL      = os.getenv("HF_MODEL", "meta-llama/Llama-3.1-8B-Instruct")
+# HF_API_KEY    = os.environ["HF_Read_Token"]
+# HF_MODEL      = os.getenv("HF_MODEL", "meta-llama/Llama-3.1-8B-Instruct")
 # HF Inference Providers expose an OpenAI-compatible chat endpoint.
 # Double check this matches what your HF account/model actually supports
 # before the demo — this is the one part most likely to need a tweak.

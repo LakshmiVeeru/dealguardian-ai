@@ -6,3 +6,4 @@ __pycache__/
 .vscode/
 deals.json
 *_id.txt
+owner_telegram_convo.txt

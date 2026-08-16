@@ -12,7 +12,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
-from config import DEALS_FILE, SUMMARY_FILE
+from app.config import DEALS_FILE, SUMMARY_FILE
 
 def _now():
     return datetime.now(timezone.utc).isoformat()

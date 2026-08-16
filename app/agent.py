@@ -14,23 +14,23 @@ else in this file (the negotiation logic) does not depend on those details.
 from caspian_sdk import CommClient
 from caspian_sdk import blocks as b
 
-from config import CEILING_PRICE, TARGET_PRICE, OPENING_OFFER, OWNER_TELEGRAM_ADDRESS,CASPIAN_API_KEY, CASPIAN_BASE_URL
-import deal_store as deal_store
-import brain as brain
-from helper import get_msg_id_from_file
-from extractor import extract_deal_details
+from app.config import CEILING_PRICE, TARGET_PRICE, OPENING_OFFER, OWNER_TELEGRAM_ADDRESS,CASPIAN_API_KEY, CASPIAN_BASE_URL
+import app.deal_store as deal_store
+import app.brain as brain
+from app.helper import get_msg_id_from_file
+from app.extractor import extract_deal_details
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("DealGuardian_AI")
 
 logging.basicConfig(
     level=logging.WARNING,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(name)s - %(message)s"
 )
 
 
 client = CommClient(api_key=CASPIAN_API_KEY, base_url=CASPIAN_BASE_URL)                      # reads CASPIAN_API_KEY / CASPIAN_BASE_URL
-logger.info("Connected Caspian client")
+logger.warning("Connected Caspian client")
 
 # ---------------------------------------------------------------------------
 # Telegram can't cold-start (initiate) a chat — the bot must be messaged
@@ -63,8 +63,10 @@ def is_from_owner(message) -> bool:
 #     return text.strip().splitlines()[0][:80] or "Unnamed item"
 
 
-client.connect_email()  # reads email credentials from .env
+email_agent = client.connect_email()  # reads email credentials from .env
 client.connect_telegram(bot_token=OWNER_TELEGRAM_ADDRESS)  # reads Telegram bot token from .env
+# logger.warning("Caspian email agent id : ",email_agent["address"])
+print("Agent address:", email_agent["address"])
 
 # client.connect_telegram(bot_token=OWNER_TELEGRAM_ADDRESS)  # reads Telegram bot token from .env
 email_conversation_id=''
@@ -88,7 +90,7 @@ def handle(message):
         deals = deal_store.load_deals()
         deal_id, deal = deal_store.find_escalated_deal(deals)
         if not deal_id:
-             #logger.info("No deal is currently waiting on you.")
+            logger.warning("No deal is currently waiting on you.")
             message.reply("No deal is currently waiting on you.")
             return
 
@@ -115,9 +117,9 @@ def handle(message):
                 # client.reply(email_conversation_id, deal["counterparty"],
                 #              "Thanks for the discussion, but we won't be moving forward at this price.")
             msg_id = get_msg_id_from_file()
-            client.reply(msg_id, "Thanks for the discussion, but we won't be moving forward at this price.")
+            client.reply(msg_id, "Hi Dear,\nThanks for the discussion, but we won't be moving forward at this price.\n\nRegards,\nVeera")
             # client.send_message(email_conversation_id, "Thanks for the discussion, but we won't be moving forward at this price.")
-            message.reply(f"Thanks for the discussion, but we won't be moving forward at this price./nDeal {deal_id} closed as walked away.")
+            message.reply(f"Thanks for the discussion, but we won't be moving forward at this price./nDeal {deal_id} closed as walked away.\n\n Please refer to the dashboard for more details")
 
         else:
             # Free-text instruction, e.g. "counter at 4200" or "tell them we need net-30 terms"
@@ -175,41 +177,42 @@ def _apply_agent_decision(deal_id, deal, decision, reply_via=None):
         owner_convo_id = _load_owner_conversation_id()
         text = (
             f"Deal {deal_id} ({deal['item']}) needs your call.\n\n"
+            f"Counter Party-Email: {deal["history"][0]['text']}"
             f"Offer: {deal.get('current_offer')} | Ceiling: {deal['ceiling_price']} | Target: {deal['target_price']}\n"
             f"Why: {decision['reasoning']}\n"
             f"Reply: approve / reject / or free-text instructions."
         )
         if owner_convo_id:
             # client.connect_telegram(bot_token=OWNER_TELEGRAM_ADDRESS)  # reads Telegram bot token from .env
-             #logger.info("Escalatign to Human for review")
+            logger.warning("Escalatign to Human for review")
             # Normal path: push into the conversation you already have with the bot.
             client.send_message(owner_convo_id, text=text)
         else:
             # First run only — you haven't messaged the bot yet, so there's no
             # conversation to push into. Message the bot yourself once and
             # this branch won't trigger again.
-             #logger.info("No owner Telegram conversation on file yet. "
-                #   "Message your bot once (e.g. send 'hi') so it can capture "
-                #   "your conversation_id, then retry.")
+            logger.warning("No owner Telegram conversation on file yet. "
+                  "Message your bot once (e.g. send 'hi') so it can capture "
+                  "your conversation_id, then retry.")
             print("No owner Telegram conversation on file yet. "
                   "Message your bot once (e.g. send 'hi') so it can capture "
                   "your conversation_id, then retry.")
         return
 
     if action == "accept":
-         #logger.info("Accepting the offer")
+        logger.warning("Accepting the offer")
         deal_store.log_turn(deal_id, "agent", "accept", price=deal.get("current_offer"),
                              text=decision["message_to_send"], reasoning=decision["reasoning"])
         deal_store.set_status(deal_id, "accepted")
 
     elif action == "reject":
-         #logger.info("Rejected the deal")
+        logger.warning("Rejected the deal")
         deal_store.log_turn(deal_id, "agent", "reject", text=decision["message_to_send"],
                              reasoning=decision["reasoning"])
         deal_store.set_status(deal_id, "rejected")
 
     elif action == "counter":
-        #  logger.info("replying with counter offer")
+        logger.warning("replying with counter offer")
         if decision["counter_price"] <= TARGET_PRICE:
             offer_price = decision["parsed_price"]
         deal_store.log_turn(deal_id, "agent", "counter", price=offer_price,#price=decision["counter_price"],
@@ -240,5 +243,6 @@ def _apply_agent_decision(deal_id, deal, decision, reply_via=None):
 
 
 if __name__ == "__main__":
-    print("Negotiation agent listening on all connected channels...")
+    logger.warning("Negotiation agent listening on all connected channels...")
+    # print("Negotiation agent listening on all connected channels...")
     client.listen()

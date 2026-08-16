@@ -1,7 +1,7 @@
 import json
 from groq import Groq
 
-from config import (
+from app.config import (
     GROQ_API_KEY, GROQ_MODEL,
     CEILING_PRICE, TARGET_PRICE, OPENING_OFFER,
     MAX_ROUNDS_BEFORE_ESCALATE, CONFIDENCE_ESCALATE_BELOW, NEAR_CEILING_FRACTION,
